@@ -20,8 +20,10 @@ import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
@@ -42,7 +44,7 @@ public class HorseStatsMain
 {
     public static final String MODID = "horsestats";
     public static final String MODNAME = "Horse Stats";
-    public static final String MODVERSION = "1.1.0";
+    public static final String MODVERSION = "1.1.1";
 
     private static Minecraft mc = Minecraft.getMinecraft();
     public static Logger logger = Logger.getLogger("HorseStats");
@@ -70,6 +72,11 @@ public class HorseStatsMain
     {
         logger.info("HorseStats: Initializing");
         MinecraftForge.EVENT_BUS.register(this);
+    }
+
+    @Mod.EventHandler
+    public void postInit(final FMLPostInitializationEvent event) {
+        ClientRegistry.registerKeyBinding(toggleButton);
     }
 
     @SubscribeEvent
