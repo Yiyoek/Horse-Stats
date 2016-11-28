@@ -4,8 +4,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.WorldRenderer;
+import net.minecraft.client.renderer.VertexBuffer;
 import net.minecraft.client.renderer.entity.RenderManager;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityAgeable;
@@ -15,8 +16,8 @@ import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.entity.passive.EntityHorse;
 import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
@@ -39,7 +40,7 @@ Created by Mr_Little_Kitty on 12/17/2015
 @Mod(modid = HorseStatsMain.MODID, name = HorseStatsMain.MODNAME, version = HorseStatsMain.MODVERSION)
 public class HorseStatsMain
 {
-    public static final String MODID = "HorseStats";
+    public static final String MODID = "horsestats";
     public static final String MODNAME = "Horse Stats";
     public static final String MODVERSION = "1.1.0";
 
@@ -72,12 +73,12 @@ public class HorseStatsMain
     }
 
     @SubscribeEvent
-    private void onKeyPress(InputEvent.KeyInputEvent event)
+    public void onKeyPress(InputEvent.KeyInputEvent event)
     {
         if(toggleButton.isPressed())
         {
             enabled = !enabled;
-            mc.thePlayer.addChatComponentMessage(new ChatComponentText("Displaying Horse Stats is now "+(enabled ? "Enabled" : "Disabled")));
+            mc.thePlayer.addChatComponentMessage(new TextComponentString("Displaying Horse Stats is now "+(enabled ? "Enabled" : "Disabled")),false);
         }
     }
 
@@ -117,7 +118,7 @@ public class HorseStatsMain
                     continue;
                 }
 
-                RenderEntityInfoInWorld((Entity)object, event.partialTicks);
+                RenderEntityInfoInWorld((Entity)object, event.getPartialTicks());
             }
         }
     }
@@ -147,7 +148,7 @@ public class HorseStatsMain
 
             EntityAgeable animal = (EntityAgeable)entity;
 
-            if (animal.riddenByEntity instanceof EntityPlayer)
+            if (animal.getRidingEntity() instanceof EntityPlayer)
             {
                 return;    //don't render stats of the horse/animal we are currently riding
             }
@@ -202,7 +203,7 @@ public class HorseStatsMain
      */
     private static int GetEntityMaxHP(EntityLivingBase entity)
     {
-        return (int) entity.getEntityAttribute(SharedMonsterAttributes.maxHealth).getAttributeValue();
+        return (int) entity.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).getAttributeValue();
     }
 
     /**
@@ -214,7 +215,7 @@ public class HorseStatsMain
     {
         //Steve has a movement speed of 0.1 and walks 4.3 blocks per second,
         //so multiply this result by 43 to convert to blocks per second
-        return entity.getEntityAttribute(SharedMonsterAttributes.movementSpeed).getAttributeValue() * 43;
+        return entity.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).getAttributeValue() * 43;
     }
 
     private String getFormattedText(final Threshold threshold, String initialString, double value)
@@ -222,11 +223,11 @@ public class HorseStatsMain
         String finalString = decimalFormat.format(value);
 
         if (value > threshold.getGood())
-            finalString = EnumChatFormatting.AQUA + finalString + EnumChatFormatting.WHITE;
+            finalString = TextFormatting.AQUA + finalString + TextFormatting.WHITE;
         else if (value > threshold.getAverage())
-            finalString = EnumChatFormatting.GREEN + finalString + EnumChatFormatting.WHITE;
+            finalString = TextFormatting.GREEN + finalString + TextFormatting.WHITE;
         else if (value < threshold.getBad())
-            finalString = EnumChatFormatting.RED + finalString + EnumChatFormatting.WHITE;
+            finalString = TextFormatting.RED + finalString + TextFormatting.WHITE;
 
         return finalString;
     }
@@ -360,27 +361,27 @@ public class HorseStatsMain
             int stringMiddle = textWidth / 2;
 
             Tessellator tessellator = Tessellator.getInstance();
-            WorldRenderer worldrenderer = tessellator.getWorldRenderer();
+            VertexBuffer worldrenderer = tessellator.getBuffer();
 
             GL11.glDisable(GL11.GL_TEXTURE_2D);
             //GlStateManager.disableTexture2D();
 
             ///* OLD 1.8 rendering code
-            worldrenderer.startDrawingQuads();
-            //worldrenderer.func_181668_a(7, DefaultVertexFormats.field_181709_i);	//field_181707_g maybe?
+            //worldrenderer.startDrawingQuads();
+            worldrenderer.begin(7, DefaultVertexFormats.POSITION_TEX);	//field_181707_g maybe?
+
+            //GlStateManager.color(0.0F, 0.0F, 0.0F, 0.5F);
+            //worldrenderer.addVertex(-stringMiddle - 1, -1 + 0, 0.0D);
+            //worldrenderer.addVertex(-stringMiddle - 1, 8 + lineHeight*text.length-lineHeight, 0.0D);
+            //worldrenderer.addVertex(stringMiddle + 1, 8 + lineHeight*text.length - lineHeight, 0.0D);
+            //worldrenderer.addVertex(stringMiddle + 1, -1 + 0, 0.0D);
 
             GlStateManager.color(0.0F, 0.0F, 0.0F, 0.5F);
-            worldrenderer.addVertex(-stringMiddle - 1, -1 + 0, 0.0D);
-            worldrenderer.addVertex(-stringMiddle - 1, 8 + lineHeight*text.length-lineHeight, 0.0D);
-            worldrenderer.addVertex(stringMiddle + 1, 8 + lineHeight*text.length - lineHeight, 0.0D);
-            worldrenderer.addVertex(stringMiddle + 1, -1 + 0, 0.0D);
-
-//            GlStateManager.color(0.0F, 0.0F, 0.0F, 0.5F);
-//            worldrenderer.putPosition(-stringMiddle - 1, -1 + 0, 0.0D);
-//            worldrenderer.putPosition(-stringMiddle - 1, 8 + lineHeight*text.length-lineHeight, 0.0D);
-//            worldrenderer.putPosition(stringMiddle + 1, 8 + lineHeight*text.length-lineHeight, 0.0D);
-//            worldrenderer.putPosition(stringMiddle + 1, -1 + 0, 0.0D);
-           // */
+            worldrenderer.pos(-stringMiddle - 1, -1 + 0, 0.0D).tex(0, 1).endVertex();
+            worldrenderer.pos(-stringMiddle - 1, 8 + lineHeight*text.length-lineHeight, 0.0D).tex(1, 1).endVertex();
+            worldrenderer.pos(stringMiddle + 1, 8 + lineHeight*text.length-lineHeight, 0.0D).tex(1, 0).endVertex();
+            worldrenderer.pos(stringMiddle + 1, -1 + 0, 0.0D).tex(0, 0).endVertex();
+            // */
 
             //This code taken from 1.8.8 net.minecraft.client.renderer.entity.Render.renderLivingLabel()
 //            worldrenderer.func_181668_a(7, DefaultVertexFormats.field_181706_f);
